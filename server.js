@@ -3,7 +3,7 @@ const path = require('path');
 const { existsSync } = require('fs');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 80; // Azure's default port for App Service is 80
 
 // Serve static files from the root directory
 app.use(express.static(path.join(__dirname, '/')));
