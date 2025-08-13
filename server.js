@@ -6,12 +6,13 @@ const app = express();
 const port = process.env.PORT || 80; // Azure's default port for App Service is 80
 
 // Serve static files from the root directory
+// This now correctly serves index.html as the default file
 app.use(express.static(path.join(__dirname, '/')));
 
 // Check if the API function is present and run it
 if (existsSync(path.join(__dirname, 'api', 'chat', 'index.js'))) {
   const chatFunction = require('./api/chat/index.js');
-  app.use('/api/chat', (req, res) => {
+  app.use('/api/chat', express.json(), (req, res) => {
     // The Azure Function uses a different request/response object,
     // so we'll wrap it to make it compatible with Express.
     const context = {
