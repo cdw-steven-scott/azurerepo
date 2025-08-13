@@ -75,9 +75,6 @@
     </div>
 
     <script>
-        // There are no hardcoded API keys or endpoints in this version.
-        // It relies on a backend Azure Function to handle the secure API call.
-
         const chatContainer = document.querySelector('.chat-container');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
@@ -116,14 +113,13 @@
             const currentChatHistory = [...chatHistory, { role: 'user', content: userMessage }];
 
             try {
-                // This call goes to the Azure Function, not the OpenAI API directly.
+                // Call the Python backend API endpoint
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        userMessage: userMessage,
                         chatHistory: currentChatHistory
                     })
                 });
