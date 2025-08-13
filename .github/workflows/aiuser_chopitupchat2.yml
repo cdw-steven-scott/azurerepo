@@ -1,71 +1,60 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
+# This workflow will build and deploy a Node.js app to an Azure Web App
+# It is designed to work with your static HTML file and the Node.js Azure Function.
 
-name: Build and deploy Python app to Azure Web App - chopitupchat2
+name: Build and deploy Node.js app to Azure Web App
 
 on:
   push:
     branches:
-      - AIuser
+      - main # Change this to your deployment branch if needed
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python version
-        uses: actions/setup-python@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          python-version: '3.13'
+          node-version: '18' # Use a supported Node.js version
 
-      - name: Create and start virtual environment
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-      
       - name: Install dependencies
-        run: pip install -r requirements.txt
-        
-      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
+        run: npm install
 
-      - name: Upload artifact for deployment jobs
+      # Build your function app if needed (for more complex projects)
+      # For your simple function, this step might not be required.
+
+      - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
-          name: python-app
+          name: node-app
           path: |
             .
-            !venv/
+            !venv/ # Exclude any Python virtual environment files
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: python-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FD6B3D4EB3F54044BB2C9E2097ACC432 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A84CCA499FBF4929B0287D4B541261E6 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_DCCB76DAADE1483897D1179CA04BECAD }}
+          name: node-app
 
       - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
         with:
-          app-name: 'chopitupchat2'
+          app-name: 'chopitupchat2' # Replace with your App Service name
           slot-name: 'Production'
-          
+          # Use the publish profile or service principal for authentication
+          # Replace with your actual credentials
+          # Use a secret for publish-profile in GitHub
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: '.' # Deploys the root directory
