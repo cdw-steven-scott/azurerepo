@@ -1,3 +1,19 @@
+import os
+import requests
+from flask import Flask, request, jsonify, render_template
+
+# Define environment variables
+AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
+MODEL_DEPLOYMENT_NAME = os.environ.get("MODEL_DEPLOYMENT_NAME")
+
+app = Flask(__name__)
+
+# Route to serve the HTML file
+@app.route('/')
+def home():
+    return render_template('index.html')
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     # Log env for quick diagnostics (safe: doesn’t print the key)
