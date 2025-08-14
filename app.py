@@ -2,131 +2,138 @@ import os
 import requests
 from flask import Flask, request, jsonify, render_template
 
-# Define environment variables
-AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
-MODEL_DEPLOYMENT_NAME = os.environ.get("MODEL_DEPLOYMENT_NAME")
-
 app = Flask(__name__)
 
-# Route to serve the HTML file
-@app.route('/')
+# --- Azure OpenAI settings (make App Settings names match these) ---
+AZURE_OPENAI_ENDPOINT    = os.environ.get("AZURE_OPENAI_ENDPOINT")      # e.g. https://<resource>.openai.azure.com
+AZURE_OPENAI_KEY         = os.environ.get("AZURE_OPENAI_KEY")           # your key
+MODEL_DEPLOYMENT_NAME    = os.environ.get("MODEL_DEPLOYMENT_NAME")      # e.g. chatdeploy
+AZURE_OPENAI_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21")
+
+# --- Prompt & tuning (server-side injection) ---
+AZURE_SYSTEM_PROMPT = os.environ.get("AZURE_SYSTEM_PROMPT", "You are a helpful assistant.")
+AZURE_TEMPERATURE   = float(os.environ.get("AZURE_TEMPERATURE", "0.7"))
+AZURE_MAX_TOKENS    = int(os.environ.get("AZURE_MAX_TOKENS", "512"))
+
+
+# ---------- Routes ----------
+@app.route("/")
 def home():
-    return render_template('index.html')
+    # expects templates/index.html
+    return render_template("index.html")
 
-# Route for the chat API
-@app.route('/api/chat', methods=['POST'])
-def chat():
-    # Log environment variables (for debugging)
-    print(f"DEBUG: Endpoint from env: {AZURE_OPENAI_ENDPOINT}")
-    print(f"DEBUG: Key from env: {'Found' if AZURE_OPENAI_KEY else 'Not Found'}")
-    print(f"DEBUG: Deployment Name from env: {MODEL_DEPLOYMENT_NAME}")
 
-    # Check for required environment variables
-    if not AZURE_OPENAI_ENDPOINT or not AZURE_OPENAI_KEY or not MODEL_DEPLOYMENT_NAME:
-        print("ERROR: Server configuration is missing required environment variables.")
-        return jsonify({"message": "Server configuration error: Missing environment variables."}), 500
+@app.route("/health")
+def health():
+    return jsonify({"ok": True})
 
-    data = request.json
-    chat_history = data.get('chatHistory')
 
-    if not chat_history:
-        print("ERROR: Invalid request, 'chatHistory' is missing from the payload.")
-        return jsonify({"message": "Invalid request: chatHistory is required."}), 400
-
-    try:
-        url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{MODEL_DEPLOYMENT_NAME}/chat/completions?api-version=2024-02-15-preview"
-        headers = {
-            "Content-Type": "application/json",
-            "api-key": AZURE_OPENAI_KEY
-        }
-        payload = {
-            "messages": chat_history
-        }
-
-        print(f"DEBUG: Attempting to call OpenAI API at URL: {url}")
-        
-        response = requests.post(url, headers=headers, json=payload, timeout=60)
-        
-        if not response.ok:
-            error = response.json()
-            print(f"ERROR: OpenAI API call failed. Status Code: {response.status_code}")
-            print(f"ERROR: OpenAI API Response: {error}")
-            return jsonify({"message": f"OpenAI API Error: {error.get('message', 'Unknown error')}"}), response.status_code
-        
-        api_data = response.json()
-        ai_response = api_data['choices'][0]['message']['content']
-        print(f"DEBUG: Successfully received response from OpenAI API.")
-
-        return jsonify({"message": ai_response})
-
-    except requests.exceptions.RequestException as e:
-        print(f"ERROR: A network-related error occurred during API call: {e}")
-        return jsonify({"message": f"Network error connecting to OpenAI API: {e}"}), 500
-
-    except Exception as e:
-        print(f"ERROR: An unexpected error occurred: {e}")
-        return jsonify({"message": f"An unexpected error occurred: {e}"}), 500
-
-if __name__ == '__main__':
-    app.run()
-    
-@app.route('/debug/openai', methods=['GET', 'POST'])
+@app.route("/debug/openai", methods=["GET", "POST"])
 def debug_openai():
-    if request.method == 'POST':
-        data = request.json
-        user_msg = data.get("message", "")
-        # Minimal test with Azure OpenAI
-        url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{MODEL_DEPLOYMENT_NAME}/chat/completions?api-version=2024-02-15-preview"
+    """
+    Minimal endpoint to test connectivity to Azure OpenAI.
+    POST body: { "message": "Hello" }
+    """
+    # Quick sanity: required settings present?
+    missing = [n for n, v in {
+        "AZURE_OPENAI_ENDPOINT": AZURE_OPENAI_ENDPOINT,
+        "AZURE_OPENAI_KEY": AZURE_OPENAI_KEY,
+        "MODEL_DEPLOYMENT_NAME": MODEL_DEPLOYMENT_NAME
+    }.items() if not v]
+    if missing:
+        return jsonify({"status": "error", "message": f"Missing settings: {', '.join(missing)}"}), 500
+
+    if request.method == "POST":
+        body = request.get_json(silent=True) or {}
+        user_msg = body.get("message", "Hello")
+
+        url = (
+            f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/"
+            f"{MODEL_DEPLOYMENT_NAME}/chat/completions"
+            f"?api-version={AZURE_OPENAI_API_VERSION}"
+        )
         headers = {"Content-Type": "application/json", "api-key": AZURE_OPENAI_KEY}
-        payload = {"messages": [{"role": "user", "content": user_msg}]}
-        resp = requests.post(url, headers=headers, json=payload)
-        return jsonify(resp.json())
-    
-    # GET method just shows debug info
+        payload = {"messages": [
+            {"role": "system", "content": AZURE_SYSTEM_PROMPT},
+            {"role": "user", "content": user_msg}
+        ]}
+
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            ct = resp.headers.get("content-type", "")
+            body = resp.json() if ct and "application/json" in ct else resp.text
+            return jsonify({"status": resp.status_code, "body": body})
+        except Exception as e:
+            return jsonify({"status": "exception", "message": str(e)}), 500
+
+    # GET => show current config (safe: doesn’t print key)
     return jsonify({
         "endpoint": AZURE_OPENAI_ENDPOINT,
         "key_found": bool(AZURE_OPENAI_KEY),
-        "deployment": MODEL_DEPLOYMENT_NAME
+        "deployment": MODEL_DEPLOYMENT_NAME,
+        "version": AZURE_OPENAI_API_VERSION,
+        "prompt_len": len(AZURE_SYSTEM_PROMPT) if AZURE_SYSTEM_PROMPT else 0,
     })
 
 
-    # Check if any are missing
-    missing = []
-    if not AZURE_OPENAI_ENDPOINT:
-        missing.append("AZURE_OPENAI_ENDPOINT")
-    if not AZURE_OPENAI_KEY:
-        missing.append("AZURE_OPENAI_KEY")
-    if not MODEL_DEPLOYMENT_NAME:
-        missing.append("MODEL_DEPLOYMENT_NAME")
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    """
+    Main chat endpoint.
+    Accepts either:
+      { "chatHistory": [ {role, content}, ... ] }
+    or:
+      { "messages":    [ {role, content}, ... ] }
+    Returns:
+      { "reply": "...", "message": "..." }
+    """
+    # Required settings check
+    missing = [n for n, v in {
+        "AZURE_OPENAI_ENDPOINT": AZURE_OPENAI_ENDPOINT,
+        "AZURE_OPENAI_KEY": AZURE_OPENAI_KEY,
+        "MODEL_DEPLOYMENT_NAME": MODEL_DEPLOYMENT_NAME
+    }.items() if not v]
     if missing:
-        return jsonify({"status": "error", "message": f"Missing environment variables: {missing}"}), 500
+        return jsonify({"error": f"Missing settings: {', '.join(missing)}"}), 500
+
+    body = request.get_json(silent=True) or {}
+
+    # Accept either shape from the client
+    incoming = body.get("chatHistory") or body.get("messages") or []
+
+    # Build messages with server-side system prompt; ignore client-provided system messages
+    msgs = [{"role": "system", "content": AZURE_SYSTEM_PROMPT}]
+    msgs.extend(m for m in incoming if isinstance(m, dict) and m.get("role") != "system")
+
+    payload = {
+        "messages": msgs,
+        "temperature": body.get("temperature", AZURE_TEMPERATURE),
+        "max_tokens": body.get("max_tokens", AZURE_MAX_TOKENS),
+        "stream": False
+    }
+
+    url = (
+        f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/"
+        f"{MODEL_DEPLOYMENT_NAME}/chat/completions"
+        f"?api-version={AZURE_OPENAI_API_VERSION}"
+    )
+    headers = {"Content-Type": "application/json", "api-key": AZURE_OPENAI_KEY}
 
     try:
-        url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{MODEL_DEPLOYMENT_NAME}/chat/completions?api-version=2024-02-15-preview"
-        headers = {
-            "Content-Type": "application/json",
-            "api-key": AZURE_OPENAI_KEY
-        }
-        # Minimal test message
-        payload = {
-            "messages": [{"role": "user", "content": "Hello"}]
-        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=60)
+        if not resp.ok:
+            # Return Azure's error text to help diagnose quickly
+            return jsonify({"error": resp.text, "status": resp.status_code, "url": url}), resp.status_code
 
-        print(f"DEBUG: Calling OpenAI API at URL: {url}")
-        response = requests.post(url, headers=headers, json=payload, timeout=15)
-
-        if not response.ok:
-            error = response.json()
-            print(f"ERROR: API call failed: {error}")
-            return jsonify({"status": "error", "message": f"OpenAI API error: {error}"}), response.status_code
-
-        api_data = response.json()
-        ai_response = api_data['choices'][0]['message']['content']
-        print(f"DEBUG: API response: {ai_response}")
-
-        return jsonify({"status": "success", "ai_response": ai_response})
-
+        data = resp.json()
+        reply = data["choices"][0]["message"]["content"]
+        # Return both keys to be compatible with different front-ends
+        return jsonify({"reply": reply, "message": reply})
     except Exception as e:
-        print(f"ERROR: Unexpected exception: {e}")
-        return jsonify({"status": "error", "message": f"Exception occurred: {e}"}), 500
+        return jsonify({"error": str(e)}), 500
+
+
+# Local dev entrypoint
+if __name__ == "__main__":
+    # Run local dev server (not used on Azure—use Gunicorn there)
+    app.run(host="0.0.0.0", port=8000, debug=True)
