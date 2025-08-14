@@ -19,21 +19,44 @@ def home():
     return render_template('index.html')
 
 # Route for the chat API
-@app.route('/api/chat', methods=['POST'])
-def chat(
+# Route for the chat API
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    body = request.get_json(silent=True) or {}
+
     # Build messages, forcing our server-side system prompt
-msgs = [{"role": "system", "content": AZURE_SYSTEM_PROMPT}]
-# Keep all non-system messages from the client
-msgs.extend(m for m in body.get("messages", []) if m.get("role") != "system")
+    msgs = [{"role": "system", "content": AZURE_SYSTEM_PROMPT}]
+    # Keep all non-system messages from the client
+    msgs.extend(m for m in body.get("messages", []) if m.get("role") != "system")
 
-payload = {
-    "messages": msgs,
-    "temperature": body.get("temperature", AZURE_TEMPERATURE),
-    "max_tokens": body.get("max_tokens", AZURE_MAX_TOKENS),
-    "stream": False
-}
+    temperature = body.get("temperature", AZURE_TEMPERATURE)
+    max_tokens  = body.get("max_tokens", AZURE_MAX_TOKENS)
 
-    ):
+    # Azure Chat Completions endpoint
+    url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version={AZURE_OPENAI_API_VERSION}"
+    headers = {
+        "api-key": AZURE_OPENAI_API_KEY,
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "messages": msgs,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": False,
+    }
+
+    try:
+        r = requests.post(url, headers=headers, json=payload, timeout=60)
+        r.raise_for_status()
+        data = r.json()
+        reply = data["choices"][0]["message"]["content"]
+        return jsonify({"reply": reply})
+    except requests.HTTPError:
+        # Bubble up Azure error text for quick debugging
+        return jsonify({"error": r.text}), r.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
     # Log environment variables (for debugging)
     print(f"DEBUG: Endpoint from env: {AZURE_OPENAI_ENDPOINT}")
     print(f"DEBUG: Key from env: {'Found' if AZURE_OPENAI_KEY else 'Not Found'}")
