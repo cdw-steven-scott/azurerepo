@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify, render_template
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
 MODEL_DEPLOYMENT_NAME = os.environ.get("MODEL_DEPLOYMENT_NAME")
+AZURE_SYSTEM_PROMPT = os.environ.get("AZURE_SYSTEM_PROMPT", "You are a helpful assistant".)
 
 app = Flask(__name__)
 
