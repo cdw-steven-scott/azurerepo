@@ -71,12 +71,25 @@ def chat():
 if __name__ == '__main__':
     app.run()
     
-@app.route('/debug/openai', methods=['GET'])
+@app.route('/debug/openai', methods=['GET', 'POST'])
 def debug_openai():
-    # Log environment variables
-    print(f"DEBUG: Endpoint from env: {AZURE_OPENAI_ENDPOINT}")
-    print(f"DEBUG: Key from env: {'Found' if AZURE_OPENAI_KEY else 'Not Found'}")
-    print(f"DEBUG: Deployment Name from env: {MODEL_DEPLOYMENT_NAME}")
+    if request.method == 'POST':
+        data = request.json
+        user_msg = data.get("message", "")
+        # Minimal test with Azure OpenAI
+        url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{MODEL_DEPLOYMENT_NAME}/chat/completions?api-version=2024-02-15-preview"
+        headers = {"Content-Type": "application/json", "api-key": AZURE_OPENAI_KEY}
+        payload = {"messages": [{"role": "user", "content": user_msg}]}
+        resp = requests.post(url, headers=headers, json=payload)
+        return jsonify(resp.json())
+    
+    # GET method just shows debug info
+    return jsonify({
+        "endpoint": AZURE_OPENAI_ENDPOINT,
+        "key_found": bool(AZURE_OPENAI_KEY),
+        "deployment": MODEL_DEPLOYMENT_NAME
+    })
+
 
     # Check if any are missing
     missing = []
