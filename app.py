@@ -43,6 +43,9 @@ def chat():
         "api-key": AZURE_OPENAI_KEY
     }
 
+    if __name__ == '__main__':
+    app.run()
+
     @app.route('/debug/openai', methods=['GET', 'POST'])
 def debug_openai():
     if request.method == 'POST':
@@ -63,9 +66,6 @@ def debug_openai():
         "deployment": MODEL_DEPLOYMENT_NAME
     })
 
-
-if __name__ == '__main__':
-    app.run()
     # Check if any are missing
     missing = []
     if not AZURE_OPENAI_ENDPOINT:
