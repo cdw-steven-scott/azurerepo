@@ -33,7 +33,7 @@ def chat():
     max_tokens  = body.get("max_tokens", AZURE_MAX_TOKENS)
 
     # Azure Chat Completions endpoint
-    url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version={AZURE_OPENAI_API_VERSION}"
+    url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=2024-02-15-preview"
     headers = {
         "api-key": AZURE_OPENAI_API_KEY,
         "Content-Type": "application/json",
