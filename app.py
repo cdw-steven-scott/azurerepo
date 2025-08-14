@@ -70,3 +70,50 @@ def chat():
 
 if __name__ == '__main__':
     app.run()
+    
+@app.route('/debug/openai', methods=['GET'])
+def debug_openai():
+    # Log environment variables
+    print(f"DEBUG: Endpoint from env: {AZURE_OPENAI_ENDPOINT}")
+    print(f"DEBUG: Key from env: {'Found' if AZURE_OPENAI_KEY else 'Not Found'}")
+    print(f"DEBUG: Deployment Name from env: {MODEL_DEPLOYMENT_NAME}")
+
+    # Check if any are missing
+    missing = []
+    if not AZURE_OPENAI_ENDPOINT:
+        missing.append("AZURE_OPENAI_ENDPOINT")
+    if not AZURE_OPENAI_KEY:
+        missing.append("AZURE_OPENAI_KEY")
+    if not MODEL_DEPLOYMENT_NAME:
+        missing.append("MODEL_DEPLOYMENT_NAME")
+    if missing:
+        return jsonify({"status": "error", "message": f"Missing environment variables: {missing}"}), 500
+
+    try:
+        url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{MODEL_DEPLOYMENT_NAME}/chat/completions?api-version=2024-02-15-preview"
+        headers = {
+            "Content-Type": "application/json",
+            "api-key": AZURE_OPENAI_KEY
+        }
+        # Minimal test message
+        payload = {
+            "messages": [{"role": "user", "content": "Hello"}]
+        }
+
+        print(f"DEBUG: Calling OpenAI API at URL: {url}")
+        response = requests.post(url, headers=headers, json=payload, timeout=15)
+
+        if not response.ok:
+            error = response.json()
+            print(f"ERROR: API call failed: {error}")
+            return jsonify({"status": "error", "message": f"OpenAI API error: {error}"}), response.status_code
+
+        api_data = response.json()
+        ai_response = api_data['choices'][0]['message']['content']
+        print(f"DEBUG: API response: {ai_response}")
+
+        return jsonify({"status": "success", "ai_response": ai_response})
+
+    except Exception as e:
+        print(f"ERROR: Unexpected exception: {e}")
+        return jsonify({"status": "error", "message": f"Exception occurred: {e}"}), 500
