@@ -8,6 +8,9 @@ AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
 MODEL_DEPLOYMENT_NAME = os.environ.get("MODEL_DEPLOYMENT_NAME")
 AZURE_SYSTEM_PROMPT = os.environ.get("AZURE_SYSTEM_PROMPT")
 
+AZURE_TEMPERATURE = float(os.environ.get("AZURE_TEMPERATURE", "0.7"))
+AZURE_MAX_TOKENS  = int(os.environ.get("AZURE_MAX_TOKENS", "512"))
+
 app = Flask(__name__)
 
 # Route to serve the HTML file
@@ -17,7 +20,20 @@ def home():
 
 # Route for the chat API
 @app.route('/api/chat', methods=['POST'])
-def chat():
+def chat(
+    # Build messages, forcing our server-side system prompt
+msgs = [{"role": "system", "content": AZURE_SYSTEM_PROMPT}]
+# Keep all non-system messages from the client
+msgs.extend(m for m in body.get("messages", []) if m.get("role") != "system")
+
+payload = {
+    "messages": msgs,
+    "temperature": body.get("temperature", AZURE_TEMPERATURE),
+    "max_tokens": body.get("max_tokens", AZURE_MAX_TOKENS),
+    "stream": False
+}
+
+    ):
     # Log environment variables (for debugging)
     print(f"DEBUG: Endpoint from env: {AZURE_OPENAI_ENDPOINT}")
     print(f"DEBUG: Key from env: {'Found' if AZURE_OPENAI_KEY else 'Not Found'}")
