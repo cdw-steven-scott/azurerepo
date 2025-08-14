@@ -46,7 +46,7 @@ def chat():
 
         print(f"DEBUG: Attempting to call OpenAI API at URL: {url}")
         
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
         
         if not response.ok:
             error = response.json()
