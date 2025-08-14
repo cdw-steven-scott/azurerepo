@@ -1,49 +1,53 @@
-import os
-import requests
+import os, requests
 from flask import Flask, request, jsonify, render_template
-
-# Define environment variables
-AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
-MODEL_DEPLOYMENT_NAME = os.environ.get("MODEL_DEPLOYMENT_NAME")
-AZURE_SYSTEM_PROMPT = os.environ.get("AZURE_SYSTEM_PROMPT")
-
-AZURE_TEMPERATURE = float(os.environ.get("AZURE_TEMPERATURE", "0.7"))
-AZURE_MAX_TOKENS  = int(os.environ.get("AZURE_MAX_TOKENS", "512"))
 
 app = Flask(__name__)
 
-# Route to serve the HTML file
-@app.route('/')
-def home():
-    return render_template('index.html')
+# --- Azure OpenAI settings (use these exact names in App Settings) ---
+AZURE_OPENAI_ENDPOINT    = os.environ.get("AZURE_OPENAI_ENDPOINT")      # e.g. https://<resource>.openai.azure.com
+AZURE_OPENAI_API_KEY     = os.environ.get("AZURE_OPENAI_API_KEY")       # NOTE: name ends with _API_KEY
+AZURE_OPENAI_DEPLOYMENT  = os.environ.get("AZURE_OPENAI_DEPLOYMENT")    # deployment name, e.g. chatdeploy
+AZURE_OPENAI_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION", "2024-10-21")
 
-# Route for the chat API
-# Route for the chat API
+# --- Prompt & tuning (server-side injection) ---
+AZURE_SYSTEM_PROMPT = os.environ.get("AZURE_SYSTEM_PROMPT", "You are a helpful assistant.")
+AZURE_TEMPERATURE   = float(os.environ.get("AZURE_TEMPERATURE", "0.7"))
+AZURE_MAX_TOKENS    = int(os.environ.get("AZURE_MAX_TOKENS", "512"))
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/health")
+def health():
+    return jsonify({"ok": True})
+
 @app.route("/api/chat", methods=["POST"])
 def chat():
     body = request.get_json(silent=True) or {}
 
-    # Build messages, forcing our server-side system prompt
+    # Ensure required settings exist (early, clear error)
+    missing = [name for name, val in {
+        "AZURE_OPENAI_ENDPOINT": AZURE_OPENAI_ENDPOINT,
+        "AZURE_OPENAI_API_KEY": AZURE_OPENAI_API_KEY,
+        "AZURE_OPENAI_DEPLOYMENT": AZURE_OPENAI_DEPLOYMENT
+    }.items() if not val]
+    if missing:
+        return jsonify({"error": f"Missing Azure settings: {', '.join(missing)}"}), 500
+
+    # Build messages, forcing server-side system prompt
     msgs = [{"role": "system", "content": AZURE_SYSTEM_PROMPT}]
-    # Keep all non-system messages from the client
     msgs.extend(m for m in body.get("messages", []) if m.get("role") != "system")
 
-    temperature = body.get("temperature", AZURE_TEMPERATURE)
-    max_tokens  = body.get("max_tokens", AZURE_MAX_TOKENS)
-
-    # Azure Chat Completions endpoint
-    url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=2024-02-15-preview"
-    headers = {
-        "api-key": AZURE_OPENAI_API_KEY,
-        "Content-Type": "application/json",
-    }
     payload = {
         "messages": msgs,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
+        "temperature": body.get("temperature", AZURE_TEMPERATURE),
+        "max_tokens": body.get("max_tokens", AZURE_MAX_TOKENS),
         "stream": False,
     }
+
+    url = f"{AZURE_OPENAI_ENDPOINT}/openai/deployments/{AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version={AZURE_OPENAI_API_VERSION}"
+    headers = {"api-key": AZURE_OPENAI_API_KEY, "Content-Type": "application/json"}
 
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=60)
@@ -52,10 +56,11 @@ def chat():
         reply = data["choices"][0]["message"]["content"]
         return jsonify({"reply": reply})
     except requests.HTTPError:
-        # Bubble up Azure error text for quick debugging
+        # Surface Azure's error text for quick debugging
         return jsonify({"error": r.text}), r.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
     # Log environment variables (for debugging)
     print(f"DEBUG: Endpoint from env: {AZURE_OPENAI_ENDPOINT}")
