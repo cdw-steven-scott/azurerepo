@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sight & Sound Tour</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="./styles.css" rel="stylesheet" />
+</head>
+<body>
+  <main>
+    <h1>Sight & Sound Tour</h1>
+
+    <section class="card">
+      <h2>1) Analyze an image</h2>
+      <form id="imgForm">
+        <label>Image URL (https): <input id="imageUrl" type="url" placeholder="https://..."/></label>
+        <div class="or">or</div>
+        <input id="file" type="file" accept="image/*" />
+        <button type="submit">Analyze</button>
+      </form>
+      <pre id="analysis"></pre>
+    </section>
+
+    <section class="card">
+      <h2>2) Translate the caption / OCR text</h2>
+      <label>Target language code:
+        <input id="toLang" value="en" />
+      </label>
+      <button id="translateBtn">Translate</button>
+      <pre id="translation"></pre>
+    </section>
+
+    <section class="card">
+      <h2>3) Speak it</h2>
+      <label>Voice (optional): <input id="voice" placeholder="en-US-JennyNeural" /></label>
+      <button id="ttsBtn">Play</button>
+      <audio id="player" controls></audio>
+    </section>
+  </main>
+
+  <script src="./app.js" type="module"></script>
+</body>
+</html>

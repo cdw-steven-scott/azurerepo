@@ -1,0 +1,12 @@
+:root { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+body { margin: 0; background: #0b1020; color: #eef1f7; }
+main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+h1 { font-size: 1.8rem; margin-bottom: 1rem; }
+.card { background: #121a35; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 6px 30px rgba(0,0,0,.25); }
+label { display: block; margin: .5rem 0; }
+input[type="url"], input[type="text"], input[type="file"] { width: 100%; }
+button { margin-top: .5rem; padding: .5rem 1rem; border: 0; border-radius: 10px; background: #5b7cfa; color: white; cursor: pointer; }
+button:hover { filter: brightness(1.1); }
+pre { background: #0d142b; padding: .75rem; border-radius: 12px; overflow: auto; }
+.or { color: #9bb0ff; font-size: .9rem; margin: .5rem 0; }
+audio { margin-top: .5rem; width: 100%; }
