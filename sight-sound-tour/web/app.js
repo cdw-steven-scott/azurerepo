@@ -3,6 +3,12 @@ const analysisPre = document.getElementById("analysis");
 const translationPre = document.getElementById("translation");
 let lastText = "";
 
+<script>
+  // Replace with your actual Function App name + domain
+  const apiBase = "https://agreeable-forest-0c9e8dd10.1.azurestaticapps.net";
+</script>
+
+
 document.getElementById("imgForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const imageUrl = document.getElementById("imageUrl").value.trim();
