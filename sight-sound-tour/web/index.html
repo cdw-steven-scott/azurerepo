@@ -19,6 +19,32 @@
         <button type="submit">Analyze</button>
       </form>
       <pre id="analysis"></pre>
+      <section class="card">
+  <h2>1) Analyze an image</h2>
+
+  <!-- Upload -->
+  <form id="imgForm" style="margin-bottom: .75rem">
+    <label>Image URL (https): <input id="imageUrl" type="url" placeholder="https://..."/></label>
+    <div class="or">or</div>
+    <input id="file" type="file" accept="image/*" />
+    <button type="submit">Analyze</button>
+  </form>
+
+  <!-- Camera -->
+  <div id="cameraBlock">
+    <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap">
+      <select id="cameraSelect"></select>
+      <button id="startCamBtn" type="button">Start camera</button>
+      <button id="captureBtn" type="button" disabled>Capture</button>
+      <button id="stopCamBtn" type="button" disabled>Stop</button>
+    </div>
+    <video id="preview" playsinline muted autoplay style="width:100%; margin-top:.5rem; border-radius:12px; display:none;"></video>
+    <canvas id="snap" style="display:none;"></canvas>
+  </div>
+
+  <pre id="analysis"></pre>
+</section>
+
     </section>
 
     <section class="card">
