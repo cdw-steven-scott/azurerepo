@@ -10,24 +10,32 @@ document.getElementById("imgForm").addEventListener("submit", async (e) => {
 
   let res;
   if (imageUrl) {
-    res = await fetch(`${apiBase}/api/analyze?imageUrl=${encodeURIComponent(imageUrl)}`, { method: "POST" });
+    res = await fetch(`${apiBase}/api/analyze?features=caption,objects,ocr&imageUrl=${encodeURIComponent(imageUrl)}`, {
+      method: "POST"
+    });
   } else if (file) {
-    const fd = new FormData();
-    fd.append("file", file);
-    res = await fetch(`${apiBase}/api/analyze`, { method: "POST", body: fd });
+    res = await fetch(`${apiBase}/api/analyze?features=caption,objects,ocr`, {
+      method: "POST",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: file  // send raw bytes, NOT multipart
+    });
   } else {
     alert("Provide an image URL or choose a file.");
     return;
   }
 
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Analyze failed: ${res.status} ${text}`);
+  }
   const data = await res.json();
   analysisPre.textContent = JSON.stringify(data, null, 2);
 
   const caption = data?.captionResult?.text || data?.caption?.text || "";
   const ocr = (data?.readResult?.content || data?.ocrResult?.text || "").trim();
-  // prefer caption; if no caption, use OCR; if both, combine
   lastText = caption || ocr || `${caption} ${ocr}`.trim();
 });
+
 
 document.getElementById("translateBtn").addEventListener("click", async () => {
   const to = document.getElementById("toLang").value || "en";
