@@ -1,6 +1,4 @@
-// CommonJS handler for Azure Functions with function.json
-// Uses Node 18+/22 global fetch and MSI to call Cognitive Services
-
+// CommonJS handler for Azure Functions (function.json). Node 22 has global fetch.
 module.exports = async function (context, req) {
   try {
     context.log("Analyze invoked");
@@ -15,7 +13,7 @@ module.exports = async function (context, req) {
     const base = visionEndpoint.replace(/\/$/, "");
     const url = `${base}/computervision/imageanalysis:analyze?features=${encodeURIComponent(features)}`;
 
-    // Acquire MSI token for Cognitive Services
+    // Managed Identity (MSI) token for Cognitive Services
     const tokenResp = await fetch(
       "http://169.254.169.254/metadata/identity/oauth2/token?resource=https%3A%2F%2Fcognitiveservices.azure.com&api-version=2018-02-01",
       { headers: { Metadata: "true" } }
@@ -28,12 +26,13 @@ module.exports = async function (context, req) {
 
     const headers = { Authorization: `Bearer ${access_token}` };
     let body;
+
     if (req.query?.imageUrl) {
       headers["Content-Type"] = "application/json";
       body = JSON.stringify({ url: req.query.imageUrl });
     } else if (req.body) {
       headers["Content-Type"] = "application/octet-stream";
-      body = req.body; // Buffer from octet-stream
+      body = req.body; // Buffer for octet-stream
     } else {
       context.res = { status: 400, body: { error: "no_image", detail: "Provide imageUrl or binary body" } };
       return;
@@ -42,7 +41,6 @@ module.exports = async function (context, req) {
     const resp = await fetch(url, { method: "POST", headers, body });
     const text = await resp.text();
 
-    // Try to parse JSON, but surface raw text if parse fails
     let data;
     try { data = JSON.parse(text); } catch { data = { raw: text }; }
 
