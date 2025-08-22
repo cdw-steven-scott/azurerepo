@@ -1,51 +1,54 @@
-import fetch from "node-fetch";
-import Busboy from "busboy";
-import { cfg, getCogsToken } from "../shared/clients.js";
+// CommonJS handler for Azure Functions with function.json
+// Uses Node 18+/22 global fetch and MSI to call Cognitive Services
 
-export default async function (context, req) {
+module.exports = async function (context, req) {
   try {
-    const { imageUrl, features } = req.query || {};
-    const feats = features || "caption,objects,ocr"; // tweak as desired
+    context.log("Analyze invoked");
 
-    const url = `${cfg.visionEndpoint}/computervision/imageanalysis:analyze?features=${encodeURIComponent(feats)}`;
+    const features = (req.query?.features || "caption,objects,ocr").trim();
 
+    const visionEndpoint = process.env.VISION_ENDPOINT;
+    if (!visionEndpoint) {
+      context.res = { status: 500, body: { error: "config", detail: "Missing VISION_ENDPOINT" } };
+      return;
+    }
+    const base = visionEndpoint.replace(/\/$/, "");
+    const url = `${base}/computervision/imageanalysis:analyze?features=${encodeURIComponent(features)}`;
+
+    // Acquire MSI token for Cognitive Services
+    const tokenResp = await fetch(
+      "http://169.254.169.254/metadata/identity/oauth2/token?resource=https%3A%2F%2Fcognitiveservices.azure.com&api-version=2018-02-01",
+      { headers: { Metadata: "true" } }
+    );
+    if (!tokenResp.ok) {
+      const t = await tokenResp.text();
+      throw new Error(`MSI token failed: ${tokenResp.status} ${t}`);
+    }
+    const { access_token } = await tokenResp.json();
+
+    const headers = { Authorization: `Bearer ${access_token}` };
     let body;
-    let headers = { "Authorization": `Bearer ${await getCogsToken()}` };
-
-    if (imageUrl) {
+    if (req.query?.imageUrl) {
       headers["Content-Type"] = "application/json";
-      body = JSON.stringify({ url: imageUrl });
-    } else {
-      // Parse multipart form-data and read file buffer
-      const buf = await readMultipartToBuffer(req, context);
+      body = JSON.stringify({ url: req.query.imageUrl });
+    } else if (req.body) {
       headers["Content-Type"] = "application/octet-stream";
-      body = buf;
+      body = req.body; // Buffer from octet-stream
+    } else {
+      context.res = { status: 400, body: { error: "no_image", detail: "Provide imageUrl or binary body" } };
+      return;
     }
 
     const resp = await fetch(url, { method: "POST", headers, body });
-    const data = await resp.json().catch(() => ({}));
+    const text = await resp.text();
+
+    // Try to parse JSON, but surface raw text if parse fails
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
 
     context.res = { status: resp.status, body: data };
   } catch (err) {
-    context.log.error(err);
-    context.res = { status: 500, body: { error: "analysis_failed", detail: `${err}` } };
+    context.log.error("Analyze error:", err);
+    context.res = { status: 500, body: { error: "analysis_failed", detail: String(err) } };
   }
-}
-
-function readMultipartToBuffer(req, context) {
-  return new Promise((resolve, reject) => {
-    try {
-      const busboy = Busboy({ headers: req.headers });
-      let chunks = [];
-      busboy.on("file", (_name, file) => {
-        file.on("data", (d) => chunks.push(d));
-      });
-      busboy.on("finish", () => resolve(Buffer.concat(chunks)));
-      busboy.on("error", reject);
-      busboy.end(req.body);
-    } catch (e) {
-      context.log.warn("No multipart body; falling back to raw bytes");
-      resolve(Buffer.from(req.body || []));
-    }
-  });
-}
+};
