@@ -3,7 +3,7 @@ module.exports = async function (context, req) {
   try {
     context.log("Analyze invoked");
 
-    const features = (req.query?.features || "caption,objects,ocr").trim();
+    const features = (req.query?.features || "caption,objects,read").trim();
 
     const visionEndpoint = process.env.VISION_ENDPOINT;
     if (!visionEndpoint) {
@@ -11,7 +11,7 @@ module.exports = async function (context, req) {
       return;
     }
     const base = visionEndpoint.replace(/\/$/, "");
-    const url = `${base}/computervision/imageanalysis:analyze?features=${encodeURIComponent(features)}`;
+    const url = `${base}/computervision/imageanalysis:analyze?api-version=2024-02-01&features=${encodeURIComponent(features)}`;
 
     // Managed Identity (MSI) token for Cognitive Services
     const tokenResp = await fetch(
