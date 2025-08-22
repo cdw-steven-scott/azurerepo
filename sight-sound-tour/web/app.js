@@ -11,7 +11,7 @@ function showError(where, err, extra) {
 }
 
 async function analyzeFromUrl(imageUrl) {
-  const res = await fetch(`${apiBase}/api/analyze?features=caption,objects,ocr&imageUrl=${encodeURIComponent(imageUrl)}`, { method: "POST" });
+  const res = await fetch(`${apiBase}/api/analyze?features=caption,objects,read&imageUrl=${encodeURIComponent(imageUrl)}`, { method: "POST" });
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   return res.json();
 }
