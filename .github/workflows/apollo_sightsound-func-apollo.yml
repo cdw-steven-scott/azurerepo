@@ -9,6 +9,10 @@ on:
       - '.github/workflows/apollo_sightsound-func-apollo.yml'
   workflow_dispatch:
 
+concurrency:
+  group: sightsound-func-apollo
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -32,10 +36,9 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Deploy ONLY the Functions subfolder (host.json at this path)
       - name: Deploy Functions
         uses: azure/functions-action@v1
         with:
           app-name: sightsound-func-apollo
-          package: sight-sound-tour/api
+          package: sight-sound-tour/api   # host.json lives here
           scm-do-build-during-deployment: true
