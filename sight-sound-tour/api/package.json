@@ -1,6 +1,5 @@
 {
   "name": "sight-sound-tour-api",
-  "type": "module",
   "private": true,
   "engines": { "node": ">=18" },
   "dependencies": {
