@@ -40,11 +40,11 @@ module.exports = async function (context, req) {
 
     const resp = await fetch(url, { method: "POST", headers, body });
     const text = await resp.text();
+    let data; try { data = JSON.parse(text); } catch { data = { raw: text } }
 
-    let data;
-    try { data = JSON.parse(text); } catch { data = { raw: text }; }
-
+ // Surface the service error directly instead of throwing a 500
     context.res = { status: resp.status, body: data };
+    return;
   } catch (err) {
     context.log.error("Analyze error:", err);
     context.res = { status: 500, body: { error: "analysis_failed", detail: String(err) } };
