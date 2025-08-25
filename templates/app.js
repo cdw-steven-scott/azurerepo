@@ -11,15 +11,6 @@ byId("applyApi").onclick = () => {
   toast(`API base set to: ${API_BASE}`);
 };
 
-// ...
-const player = byId("player");
-
-// Add this line
-const autoSpeakCheckbox = byId("autoSpeak"); 
-
-let lastCaption = "";
-// ...
-
 // load persisted API base
 const saved = localStorage.getItem("apiBase");
 if (saved) {
@@ -40,6 +31,7 @@ tabs.forEach(btn => {
   });
 });
 
+// All UI element variables should be declared here
 const preview = byId("preview");
 const fileInput = byId("fileInput");
 const imageUrl = byId("imageUrl");
@@ -54,6 +46,8 @@ const speakBtn = byId("speakBtn");
 const voiceSel = byId("voice");
 const formatSel = byId("format");
 const player = byId("player");
+// This is the correct place for the variable
+const autoSpeakCheckbox = byId("autoSpeak"); 
 
 let lastCaption = "";
 
@@ -66,6 +60,9 @@ const stopCamBtn = byId("stopCam");
 const snapBtn = byId("snap");
 
 let stream = null;
+
+// The rest of the code follows here, including all functions and event listeners
+// ...
 
 async function listCameras() {
   try {
