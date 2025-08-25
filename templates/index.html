@@ -1,28 +1,112 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Emotion Detector</title>
+  <meta charset="utf-8" />
+  <title>Sight & Sound — Image → Caption → Speech</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./styles.css" />
+  <!-- Set this to your Function App URL -->
+  <script>
+    // IMPORTANT: set this to your Function App base:
+    // e.g. "https://sightsound-func-clean.azurewebsites.net"
+    window.API_BASE = window.API_BASE || "https://sightsound-func-clean.azurewebsites.net";
+  </script>
 </head>
 <body>
-    <h1>Upload an Image to Detect Emotion</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required />
-        <button type="submit">Analyze</button>
-    </form>
-    <pre id="result"></pre>
+  <header>
+    <h1>Sight & Sound</h1>
+    <div class="api-box">
+      <label>API Base</label>
+      <input id="apiBase" type="url" placeholder="https://<func>.azurewebsites.net" />
+      <button id="applyApi">Apply</button>
+    </div>
+  </header>
 
-    <script>
-        const form = document.getElementById('uploadForm');
-        form.onsubmit = async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            document.getElementById('result').textContent = JSON.stringify(result, null, 2);
-        };
-    </script>
+  <main class="grid">
+    <!-- LEFT: Image source -->
+    <section class="card">
+      <h2>1) Choose Image</h2>
+
+      <div class="source-tabs">
+        <button class="tab active" data-target="#uploadPane">Upload</button>
+        <button class="tab" data-target="#cameraPane">Camera</button>
+        <button class="tab" data-target="#urlPane">URL</button>
+      </div>
+
+      <div id="uploadPane" class="pane active">
+        <input id="fileInput" type="file" accept="image/*" />
+      </div>
+
+      <div id="cameraPane" class="pane">
+        <div class="cam-row">
+          <select id="cameraSelect"></select>
+          <button id="startCam">Start</button>
+          <button id="snap" disabled>Snap</button>
+          <button id="stopCam" disabled>Stop</button>
+        </div>
+        <video id="video" playsinline muted></video>
+        <canvas id="canvas" class="hide"></canvas>
+      </div>
+
+      <div id="urlPane" class="pane">
+        <input id="imageUrl" type="url" placeholder="https://example.com/photo.jpg" />
+      </div>
+
+      <div class="preview">
+        <img id="preview" alt="preview" />
+      </div>
+
+      <button id="analyzeBtn" class="primary">Analyze</button>
+      <div id="status"></div>
+    </section>
+
+    <!-- RIGHT: Results + TTS -->
+    <section class="card">
+      <h2>2) Caption & Speak</h2>
+
+      <div class="kv">
+        <div>Caption</div>
+        <div id="caption">—</div>
+      </div>
+
+      <details>
+        <summary>Objects (debug)</summary>
+        <pre id="objects">(none)</pre>
+      </details>
+
+      <details>
+        <summary>OCR (debug)</summary>
+        <pre id="ocr">(none)</pre>
+      </details>
+
+      <div class="row">
+        <label for="voice">Voice</label>
+        <select id="voice">
+          <option>en-US-JennyNeural</option>
+          <option>en-US-GuyNeural</option>
+          <option>en-GB-LibbyNeural</option>
+          <option>es-ES-ElviraNeural</option>
+          <option>fr-FR-DeniseNeural</option>
+        </select>
+        <label for="format">Format</label>
+        <select id="format">
+          <option>audio-24khz-160kbitrate-mono-mp3</option>
+          <option>audio-16khz-128kbitrate-mono-mp3</option>
+          <option>riff-24khz-16bit-mono-pcm</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <button id="speakBtn" disabled>Speak Caption</button>
+        <audio id="player" controls class="hide"></audio>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Tip: Camera requires HTTPS and user permission. If the Speak button is disabled, run Analyze first.</small>
+  </footer>
+
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
