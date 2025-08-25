@@ -167,8 +167,8 @@ async function analyze() {
 
   try {
     const params = new URLSearchParams({
-      features: "caption,objects,read"
-    });
+  features: "caption,objects,read,DenseCaptions,Tags"
+  });
 
     let resp;
     if (preview._blob instanceof Blob) {
