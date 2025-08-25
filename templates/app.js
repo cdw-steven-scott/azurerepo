@@ -188,32 +188,28 @@ async function analyze() {
       return;
     }
 
-    const txt = await resp.text();
-    let data;
-    try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
-
     if (!resp.ok) {
-      console.error("Analyze error:", data);
-      toast(`Analyze failed (${resp.status})`);
-      return;
+      const errorText = await resp.text();
+      console.error("Analyze API failed:", errorText);
+      throw new Error(`Analyze API failed with status ${resp.status}: ${errorText.slice(0, 100)}...`);
     }
 
-    // Extract a caption
-    const cap = data?.captionResult?.text
-      || data?.caption?.text
-      || data?.description?.captions?.[0]?.text
-      || "";
+    const txt = await resp.text();
+    let data;
+    try {
+      data = JSON.parse(txt);
+    } catch {
+      data = { raw: txt };
+    }
 
+    const cap = data?.captionResult?.text || data?.caption?.text || data?.description?.captions?.[0]?.text || "";
     lastCaption = cap || "";
     captionEl.textContent = lastCaption || "(no caption)";
 
-    // Debug: objects & OCR
     const objects = data?.objectsResult?.values || data?.objects || [];
     objectsEl.textContent = JSON.stringify(objects, null, 2);
 
-    const ocr = data?.readResult?.content
-      || data?.readResult
-      || data?.ocr;
+    const ocr = data?.readResult?.content || data?.readResult || data?.ocr;
     if (typeof ocr === "string") {
       ocrEl.textContent = ocr;
     } else {
@@ -222,9 +218,10 @@ async function analyze() {
 
     if (lastCaption) speakBtn.disabled = false;
     toast("Analyze complete");
+
   } catch (e) {
-    console.error(e);
-    toast("Analyze exception");
+    console.error("Analyze exception:", e);
+    toast(`Analyze exception: ${e.message}`);
   } finally {
     analyzeBtn.disabled = false;
   }
