@@ -144,7 +144,7 @@ module.exports = async function (context, req) {
       return;
     }
 
-    const features = (req.query?.features || "caption,objects,read").trim();
+    const features = (req.query?.features || "caption,objects,read,DenseCaptions,Tags").trim();
     const url = `${endpoint}/computervision/imageanalysis:analyze?api-version=2024-02-01&features=${encodeURIComponent(features)}&modelVersion=latest&language=en`;
 
     const headers = { "Ocp-Apim-Subscription-Key": key };
@@ -174,3 +174,4 @@ module.exports = async function (context, req) {
     context.log(`Analyze finished in ${Date.now() - start} ms`);
   }
 };
+
