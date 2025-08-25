@@ -1,0 +1,7 @@
+{
+  "name": "analyze-only",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "dependencies": {}
+}
+
