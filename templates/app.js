@@ -44,6 +44,12 @@ const tagsEl = byId("tags");
 const objectsEl = byId("objects");
 const ocrEl = byId("ocr");
 
+const captionEl = byId("caption");
+const denseCaptionsEl = byId("denseCaptions");
+const tagsEl = byId("tags");
+const objectsEl = byId("objects");
+const ocrEl = byId("ocr");
+
 const speakBtn = byId("speakBtn");
 const voiceSel = byId("voice");
 const formatSel = byId("format");
@@ -217,7 +223,26 @@ async function analyze() {
 
     const tags = data?.tagsResult?.values || data?.tags || [];
     tagsEl.textContent = JSON.stringify(tags, null, 2);
+        
+      // New code to extract and display Dense Captions
+      const denseCaptions = data?.denseCaptionsResult?.values || data?.denseCaptions || [];
+      if (denseCaptions.length > 0) {
+    // Format the dense captions into a readable string
+    const formattedCaptions = denseCaptions.map(c => `[${(c.confidence * 100).toFixed(0)}% confidence] ${c.text}`).join('\n');
+    denseCaptionsEl.textContent = formattedCaptions;
+      } else {
+    denseCaptionsEl.textContent = "(none)";
+      }
 
+      // New code to extract and display Tags
+      const tags = data?.tagsResult?.values || data?.tags || [];
+      if (tags.length > 0) {
+          // Format the tags into a comma-separated list
+          const formattedTags = tags.map(t => `${t.name} (${(t.confidence * 100).toFixed(0)}%)`).join(', ');
+          tagsEl.textContent = formattedTags;
+      } else {
+          tagsEl.textContent = "(none)";
+      }
     const objects = data?.objectsResult?.values || data?.objects || [];
     objectsEl.textContent = JSON.stringify(objects, null, 2);
 
