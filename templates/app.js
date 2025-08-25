@@ -11,6 +11,15 @@ byId("applyApi").onclick = () => {
   toast(`API base set to: ${API_BASE}`);
 };
 
+// ...
+const player = byId("player");
+
+// Add this line
+const autoSpeakCheckbox = byId("autoSpeak"); 
+
+let lastCaption = "";
+// ...
+
 // load persisted API base
 const saved = localStorage.getItem("apiBase");
 if (saved) {
