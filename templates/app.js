@@ -165,9 +165,7 @@ async function analyze() {
     });
 
     let resp;
-    // Priorities: camera snap blob → file upload → URL param
     if (preview._blob instanceof Blob) {
-      // From camera snapshot
       resp = await fetch(`${API_BASE}/api/analyze?${params}`, {
         method: "POST",
         headers: { "Content-Type": "application/octet-stream" },
@@ -216,8 +214,16 @@ async function analyze() {
       ocrEl.textContent = JSON.stringify(ocr, null, 2);
     }
 
-    if (lastCaption) speakBtn.disabled = false;
     toast("Analyze complete");
+
+    // The new logic is here
+    if (lastCaption) {
+        if (autoSpeakCheckbox.checked) {
+            await speak();
+        } else {
+            speakBtn.disabled = false;
+        }
+    }
 
   } catch (e) {
     console.error("Analyze exception:", e);
