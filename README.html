@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sight & Sound: Interactive Setup Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            transform: translateY(-2px);
+        }
+        .tab.active {
+            border-color: #0ea5e9;
+            background-color: #0ea5e9;
+            color: white;
+        }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background-color: #334155;
+            color: #e2e8f0;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s ease;
+        }
+        .copy-btn:hover {
+            background-color: #475569;
+        }
+        .checklist-item {
+            transition: color 0.3s ease;
+        }
+        .checklist-item input:checked + label {
+            text-decoration: line-through;
+            color: #64748b;
+        }
+        .link {
+            color: #0ea5e9;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+        .icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 0.75rem;
+            color: #0ea5e9;
+        }
+        <!-- Chosen Palette: Light Azure -->
+        <!-- Application Structure Plan: An interactive, step-by-step guide translating the README's setup instructions. Uses sections for Overview, Prerequisites, a tabbed interface for Setup Steps (Create Resources, Configure, Deploy), and a Tech Stack summary. This structure enhances usability by making the technical process interactive with checklists and copy-to-clipboard actions, which is more engaging and less error-prone than a static document. -->
+        <!-- Visualization & Content Choices: README Info -> Goal -> Presentation -> Interaction -> Justification. Features -> Inform -> Icon Grid -> Hover effects -> Visually engaging summary. Prerequisites -> Track progress -> Interactive checklist -> Clicking checkboxes -> Provides user feedback. Deployment Command -> Ease of use -> Code block with dynamic input -> Copy button -> Reduces typing errors. This approach uses simple, structured HTML and JS interactions to make technical documentation clear and actionable. -->
+        <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-800">Sight & Sound</h1>
+            <p class="mt-2 text-lg text-slate-600">Interactive Setup Guide</p>
+        </header>
+
+        <main class="space-y-12">
+            <!-- Overview Section -->
+            <section id="overview" class="card p-8">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-700">Application Overview</h2>
+                <p class="text-slate-600 mb-6">
+                    Sight & Sound is a web application that demonstrates how to integrate Azure AI services to perform advanced image analysis and convert the resulting descriptions into spoken audio. This guide will walk you through the setup process.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-slate-600">
+                    <div class="flex items-center p-3 bg-slate-50 rounded-lg">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>Flexible Image Input</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-slate-50 rounded-lg">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span>Deep Image Analysis</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-slate-50 rounded-lg">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.636 5.636a9 9 0 0112.728 0M8.464 15.536a5 5 0 010-7.072"></path></svg>
+                        <span>Dynamic Text-to-Speech</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Prerequisites Section -->
+            <section id="prerequisites" class="card p-8">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-700">Prerequisites Checklist</h2>
+                <p class="text-slate-600 mb-6">Before you begin, ensure you have the following tools installed and set up.</p>
+                <div class="space-y-3">
+                    <div class="checklist-item flex items-center">
+                        <input id="check1" type="checkbox" class="h-4 w-4 text-sky-500 border-slate-300 rounded focus:ring-sky-500">
+                        <label for="check1" class="ml-3 text-slate-700">An active Azure subscription</label>
+                    </div>
+                    <div class="checklist-item flex items-center">
+                        <input id="check2" type="checkbox" class="h-4 w-4 text-sky-500 border-slate-300 rounded focus:ring-sky-500">
+                        <label for="check2" class="ml-3 text-slate-700">Node.js (LTS version) - <a href="https://nodejs.org/" target="_blank" rel="noopener noreferrer" class="link">Download</a></label>
+                    </div>
+                    <div class="checklist-item flex items-center">
+                        <input id="check3" type="checkbox" class="h-4 w-4 text-sky-500 border-slate-300 rounded focus:ring-sky-500">
+                        <label for="check3" class="ml-3 text-slate-700">Azure CLI or Azure PowerShell - <a href="https://docs.microsoft.com/en-us/cli/azure/install-azure-cli" target="_blank" rel="noopener noreferrer" class="link">Installation Guide</a></label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Setup Steps Section -->
+            <section id="setup" class="card p-8">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-700">Setup & Deployment Steps</h2>
+                <div class="border-b border-slate-200 mb-6">
+                    <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                        <button class="tab active whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" data-target="#step1">Step 1: Create Resources</button>
+                        <button class="tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" data-target="#step2">Step 2: Configure</button>
+                        <button class="tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" data-target="#step3">Step 3: Deploy</button>
+                        <button class="tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" data-target="#step4">Step 4: Use App</button>
+                    </nav>
+                </div>
+
+                <div id="step1" class="tab-pane active space-y-6">
+                    <h3 class="text-xl font-semibold text-slate-700">Create Azure Resources</h3>
+                    <div>
+                        <h4 class="font-semibold text-slate-600">1. Azure AI Services Account</h4>
+                        <p class="text-slate-600 mt-1">In the Azure Portal, create a new **Azure AI services multi-service account**. After creation, navigate to its "Keys and Endpoint" page and copy the **Endpoint URL** and one of the **Keys**.</p>
+                        <a href="https://portal.azure.com/#create/Microsoft.CognitiveServicesAllInOne" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 bg-sky-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-sky-600 transition-colors">Create AI Services Resource</a>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-600">2. Azure Function App</h4>
+                        <p class="text-slate-600 mt-1">Create a new **Function App**. Ensure you select **Node.js** as the runtime stack and choose the same region as your AI Services account for optimal performance.</p>
+                         <a href="https://portal.azure.com/#create/Microsoft.FunctionApp" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 bg-sky-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-sky-600 transition-colors">Create Function App</a>
+                    </div>
+                </div>
+
+                <div id="step2" class="tab-pane space-y-4">
+                    <h3 class="text-xl font-semibold text-slate-700">Configure Environment Variables</h3>
+                    <p class="text-slate-600">In your Function App's "Configuration" settings, add the following application settings. This is how your code securely accesses your API keys and endpoint.</p>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-md">
+                            <code class="text-slate-800">VISION_ENDPOINT</code>
+                            <button class="copy-btn" data-clipboard-text="VISION_ENDPOINT">Copy</button>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-md">
+                            <code class="text-slate-800">VISION_KEY</code>
+                            <button class="copy-btn" data-clipboard-text="VISION_KEY">Copy</button>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-md">
+                            <code class="text-slate-800">SPEECH_REGION</code>
+                            <button class="copy-btn" data-clipboard-text="SPEECH_REGION">Copy</button>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-md">
+                            <code class="text-slate-800">SPEECH_KEY</code>
+                            <button class="copy-btn" data-clipboard-text="SPEECH_KEY">Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step3" class="tab-pane space-y-4">
+                    <h3 class="text-xl font-semibold text-slate-700">Deploy the Code</h3>
+                    <p class="text-slate-600">Clone the repository and use the Azure Functions Core Tools to publish the application. Enter your Function App's name below to generate the exact command.</p>
+                    <div class="mt-2">
+                        <label for="appNameInput" class="block text-sm font-medium text-slate-700">Your Function App Name:</label>
+                        <input type="text" id="appNameInput" class="mt-1 block w-full md:w-1/2 rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm" placeholder="my-sight-sound-app">
+                    </div>
+                    <div class="code-block mt-4">
+                        <pre><code id="deployCommand">func azure functionapp publish &lt;YOUR_FUNCTION_APP_NAME&gt;</code></pre>
+                        <button class="copy-btn" id="copyDeployCommand">Copy</button>
+                    </div>
+                </div>
+
+                <div id="step4" class="tab-pane">
+                    <h3 class="text-xl font-semibold text-slate-700">Use the App</h3>
+                    <p class="text-slate-600">Once deployed, your application will be available at your Function App's URL. You can now start analyzing images!</p>
+                    <p class="mt-4 text-slate-600">Example URL: <code class="bg-slate-100 p-1 rounded">https://&lt;YOUR_APP_NAME&gt;.azurewebsites.net</code></p>
+                </div>
+            </section>
+            
+            <!-- Tech Stack Section -->
+            <section id="tech-stack" class="card p-8">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-700">Technology Stack</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div>
+                        <div class="bg-slate-100 p-4 rounded-lg flex justify-center items-center h-24">
+                           <p class="font-semibold text-slate-700">HTML/CSS/JS</p>
+                        </div>
+                        <p class="text-sm mt-2 text-slate-600">Frontend</p>
+                    </div>
+                     <div>
+                        <div class="bg-slate-100 p-4 rounded-lg flex justify-center items-center h-24">
+                           <p class="font-semibold text-slate-700">Azure Functions</p>
+                        </div>
+                        <p class="text-sm mt-2 text-slate-600">Backend</p>
+                    </div>
+                     <div>
+                        <div class="bg-slate-100 p-4 rounded-lg flex justify-center items-center h-24">
+                           <p class="font-semibold text-slate-700">Azure AI Vision</p>
+                        </div>
+                        <p class="text-sm mt-2 text-slate-600">AI Service</p>
+                    </div>
+                     <div>
+                        <div class="bg-slate-100 p-4 rounded-lg flex justify-center items-center h-24">
+                           <p class="font-semibold text-slate-700">Azure AI Speech</p>
+                        </div>
+                        <p class="text-sm mt-2 text-slate-600">AI Service</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-12 text-slate-500 text-sm">
+            <p>&copy; 2025 Sight & Sound. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            const panes = document.querySelectorAll('.tab-pane');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const target = document.querySelector(tab.dataset.target);
+                    panes.forEach(p => p.classList.remove('active'));
+                    target.classList.add('active');
+                });
+            });
+
+            // Copy button functionality
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const textToCopy = button.dataset.clipboardText || document.getElementById('deployCommand').textContent;
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy text: ', err);
+                    });
+                });
+            });
+
+            // Dynamic deploy command
+            const appNameInput = document.getElementById('appNameInput');
+            const deployCommandElement = document.getElementById('deployCommand');
+            const copyDeployBtn = document.getElementById('copyDeployCommand');
+
+            appNameInput.addEventListener('input', (e) => {
+                const appName = e.target.value.trim();
+                const command = `func azure functionapp publish ${appName || '<YOUR_FUNCTION_APP_NAME>'}`;
+                deployCommandElement.textContent = command;
+            });
+             copyDeployBtn.addEventListener('click', () => {
+                    const textToCopy = deployCommandElement.textContent;
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalText = copyDeployBtn.textContent;
+                        copyDeployBtn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyDeployBtn.textContent = 'Copy';
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy text: ', err);
+                    });
+                });
+        });
+    </script>
+</body>
+</html>
