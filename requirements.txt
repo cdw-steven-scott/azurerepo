@@ -5,7 +5,7 @@ openai==1.43.0
 botbuilder-core==4.14.5
 botbuilder-schema==4.14.5
 botbuilder-integration-aiohttp==4.14.5
-aiohttp==3.9.5
+aiohttp==3.8.5
 pypdf==4.3.1
 python-dotenv==1.0.1
 tiktoken==0.7.0
