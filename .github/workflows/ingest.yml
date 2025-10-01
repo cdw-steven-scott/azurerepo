@@ -1,0 +1,29 @@
+name: Nightly Ingest → Azure AI Search
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '13 3 * * *'
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        working-directory: ingest
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai==1.43.0 azure-search-documents==11.6.0b4 pypdf==4.3.1
+      - name: Run ingest
+        working-directory: ingest
+        env:
+          SEARCH_ENDPOINT: ${{ secrets.SEARCH_ENDPOINT }}
+          SEARCH_KEY: ${{ secrets.SEARCH_KEY }}
+          AOAI_ENDPOINT: ${{ secrets.AOAI_ENDPOINT }}
+          AOAI_KEY: ${{ secrets.AOAI_KEY }}
+          OPENAI_EMBEDDINGS: ${{ vars.OPENAI_EMBEDDINGS || 'embed-deploy' }}
+          SEARCH_INDEX: ${{ vars.SEARCH_INDEX || 'kb-index' }}
+          EMBEDDING_DIMS: ${{ vars.EMBEDDING_DIMS || '1536' }}
+        run: python ingest.py
