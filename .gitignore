@@ -1,0 +1,6 @@
+﻿# build artifacts
+/_unzip_test/
+/package/
+/app.zip
+*.zip
+/_zipcheck/
